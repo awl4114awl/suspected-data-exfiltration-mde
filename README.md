@@ -1,5 +1,17 @@
 # 🧰 Suspected Data Exfiltration (Microsoft Defender for Endpoint)
 
+![Microsoft Defender](https://img.shields.io/badge/Microsoft_Defender-0078D4?style=for-the-badge\&logo=microsoftdefender\&logoColor=white)
+![PowerShell](https://img.shields.io/badge/PowerShell-5391FE?style=for-the-badge\&logo=powershell\&logoColor=white)
+![Azure](https://img.shields.io/badge/Azure-0078D4?style=for-the-badge\&logo=microsoftazure\&logoColor=white)
+![Windows](https://img.shields.io/badge/Windows_11-0078D6?style=for-the-badge\&logo=windows11\&logoColor=white)
+![Tenable](https://img.shields.io/badge/Tenable-00A0E0?style=for-the-badge\&logo=tenable\&logoColor=white)
+![Security](https://img.shields.io/badge/Cyber_Range-orange?style=for-the-badge)
+
+> ⚙️ This project demonstrates an end-to-end **insider-threat investigation** using **Microsoft Defender for Endpoint (MDE)** within the shared **Cyber Range** environment.
+> I simulated a malicious employee attempting to **compress and exfiltrate sensitive data**, then performed full detection, analysis, and remediation using **Advanced Hunting (KQL)** telemetry.
+
+---
+
 ## 🧠 Environment Details
 
 | Component         | Details                                |
@@ -13,11 +25,8 @@
 | **Public IP**     | 20.7.179.187                           |
 | **Private IP**    | 10.0.0.145                             |
 
-The **Cyber Range** is a shared, cloud-based training environment designed to simulate enterprise networks and attack scenarios.
-Each participant operates within a common virtual network where simulated threats can safely occur and be detected without risk to production systems.
-
-This project walks through a full end-to-end insider-threat investigation using Microsoft Defender for Endpoint’s Advanced Hunting.
-I used a controlled PowerShell script to simulate a malicious employee compressing and exfiltrating sensitive company data, then used **KQL (Kusto Query Language)** within MDE Advanced Hunting to detect, analyze, and attribute the behavior.
+The **Cyber Range** is a shared, cloud-based training environment that simulates enterprise networks and real-world attack scenarios.
+Each participant operates within a safe, controlled subnet where malicious activity can be executed and detected without impacting production systems.
 
 ---
 
@@ -54,7 +63,7 @@ This downloaded and executed `exfiltratedata.ps1`, which:
 ---
 ### Investigation Scenario: Data Exfiltration from PIPd Employee
 
-#### 1️⃣ Step 1 - Preparation
+## 1️⃣ Step 1 | Preparation
 
 **Scenario Setup**
 A PIP’d employee, John Doe, has become a potential insider threat. Management suspects possible data exfiltration from his corporate workstation (awl4114awl-mde).
@@ -75,7 +84,7 @@ John may have used a compression utility (e.g., WinRAR, 7-Zip, WinZip) to archiv
 * Cross-reference that window against outbound network traffic to detect exfiltration channels.
 * Map any suspicious behavior to MITRE ATT&CK TTPs (e.g., T1560 – Archive Collected Data, T1048 – Exfiltration Over Alternative Protocol).
 ---
-### 🧩 Step 2 — Data Collection
+## 🧩 Step 2 | Data Collection
 
 **Goal:**
 Gather relevant evidence from logs, file activity, and network telemetry to validate the hypothesis of possible data compression and exfiltration by the PIP’d employee.
@@ -195,7 +204,7 @@ All three evidence sources align:
 This collective telemetry supports the working hypothesis that **John Doe** used PowerShell to compress and exfiltrate sensitive data from his assigned workstation.
 
 ---
-### 🧠 Step 3 — Data Analysis
+## 🧠 Step 3 | Data Analysis
 
 **Goal:**
 Analyze collected MDE telemetry to validate the hypothesis of PowerShell-based remote code execution (RCE) and data exfiltration.
@@ -257,7 +266,7 @@ The Advanced Hunting dataset validates a deliberate, automated PowerShell execut
 Evidence aligns with known threat behaviors in the **MITRE ATT&CK** framework and confirms the original hypothesis of **malicious insider activity**.
 
 ---
-### Step 4️⃣ — Investigation
+## Step 4️ | Investigation
 
 **Goal:** Investigate suspicious findings, identify potential TTPs, and map observed behaviors to the MITRE ATT&CK framework.
 
@@ -325,7 +334,7 @@ Process/file/network correlation (`cmd` → `powershell` → `7z`; created `empl
 
 ---
 
-### 5️⃣ Final Hardening Steps I Ran
+## Step 5 | Final Hardening Steps I Ran
 
 #### 🔹 Purpose
 
@@ -503,13 +512,13 @@ Remove-Item "C:\ProgramData\exfiltratedata.ps1" -Force
 **BEFORE:**
 
 <p align="left">
-  <img src="images/Screenshot 2025-11-08 19.png" width="600">
+  <img src="images/Screenshot 2025-11-08 19.png" width="750">
 </p>
 
 **AFTER:**
 
 <p align="left">
-  <img src="images/Screenshot 2025-11-08 20.png" width="600">
+  <img src="images/Screenshot 2025-11-08 20.png" width="750">
 </p>
 
 ---
@@ -520,138 +529,144 @@ No new 7-Zip, PowerShell, or network exfiltration activity was observed after cl
 
 ---
 
-### 🧾 Step 6 — Documentation
+## 🧾 Step 6 | Documentation
 
-**Goal:** Record what I did, what I found, and what it means for future hunts.
-
-**✅ What I Did**
-Here is a clear record of my full investigation workflow:
-Created and onboarded a Windows 11 VM to Microsoft Defender for Endpoint (MDE).
-Verified the device was active, reporting telemetry, and visible in the Defender portal.
-
-Simulated malicious behavior by running a PowerShell one-liner that downloaded and executed a script (exfiltratedata.ps1) intended to mimic insider data theft.
-
-Collected telemetry from three core MDE tables:
-
-DeviceProcessEvents — to identify suspicious PowerShell, cmd, csc.exe, and MpCmdRun.exe activity
-
-DeviceFileEvents — to capture script creation and ZIP/CSV activity
-
-DeviceNetworkEvents — to confirm outbound connections associated with the attack
-
-Analyzed the full event chain by correlating timestamps between processes, files, and network flows.
-This allowed me to identify the exact execution sequence used for data exfiltration.
-
-Mapped activity to MITRE ATT&CK techniques, including:
-
-T1059.001 — PowerShell
-
-T1127 — Compile After Delivery
-
-T1218 — Signed Binary Proxy Execution (using MpCmdRun.exe)
-
-T1041 — Exfiltration Over C2 Channel
-
-Conducted a deep-dive investigation into the execution chain using Advanced Hunting queries, visualizations, and process-tree inspection.
-
-Performed remediation and hardening using final-hardening.ps1, which:
-
-Removed 7-Zip
-
-Enforced TLS 1.2
-
-Enabled Defender real-time protections
-
-Enforced firewall and audit policies
-
-Applied secure password/lockout policies
-
-Activated command-line auditing
-
-Verified the fixed state using:
-
-Get-MpComputerStatus
-
-Fresh MDE hunts
-
-Manual directory inspection (ProgramData)
-
-Removal of exfiltratedata.ps1 artifact
-
-Confirmed the system is now hardened, telemetry is clean, and no further suspicious activity appears.
+**Goal:**  
+Record what I did, what I found, and what it means for future hunts.  
 
 ---
 
-### 🔧 Step 7 — Improvement
+#### ✅ What I Did
 
-**Goal:** Strengthen security posture and refine investigation methods for the next hunt.
+Here is a concise record of my full investigation workflow:  
 
-**✅ What Could Have Prevented This Attack?**
-Several preventative controls could have stopped or limited the original attack chain:
-
-1. Remove or restrict 7-Zip and other archival tools
-   The attack relied on 7-Zip to compress data.
-   If 7-Zip had never been installed or was restricted, the script would have failed.
-2. Enforce strict PowerShell execution policies
-   The script used -ExecutionPolicy Bypass.
-   Device Guard / AppLocker / WDAC could block bypass attempts entirely.
-3. Enable command-line auditing earlier
-   This dramatically improves visibility.
-   If auditing were already enabled, detection would have been faster.
-4. Restrict write access to ProgramData
-   Preventing non-admin write access would block script staging in C:\ProgramData.
-5. Outbound filtering / firewall egress rules
-   Blocking or alerting on outbound GitHub RAW requests (common exfil path) would catch this instantly.
-6. Use automated detection rules in MDE
-   Custom KQL detection rules could alert on:
-   PowerShell + Invoke-WebRequest
-
-7-Zip being used with a (archive) commands
-
-Cmd.exe launching PowerShell with bypass flags
+1. **Created and onboarded** a Windows 11 VM to **Microsoft Defender for Endpoint (MDE)**.  
+2. **Verified** the device was active, reporting telemetry, and visible in the Defender portal.  
+3. **Simulated malicious behavior** by running a PowerShell one-liner that downloaded and executed `exfiltratedata.ps1`, mimicking insider data theft.  
 
 ---
 
-**✅ How I Could Improve My Hunting Process**
-Reflecting on the steps I took, several improvements stand out:
+#### 🧩 Telemetry Collection  
 
-1. Build a timeline correlation query earlier
-   A single query joining ProcessEvents, FileEvents, and NetworkEvents would speed up triage.
-   I ended up doing this manually later.
-2. Automate extraction of suspicious indicators
-   I could use watchlists or custom tables to track:
-   Investigated IPs
+I collected telemetry from three core MDE tables to build a complete activity picture:  
 
-Suspicious hashes
+- **DeviceProcessEvents** — captured PowerShell, cmd, csc.exe, and MpCmdRun.exe activity  
+- **DeviceFileEvents** — logged script creation and ZIP/CSV modifications  
+- **DeviceNetworkEvents** — confirmed outbound connections related to the simulated attack  
 
-Known bad folders
-This speeds up future hunts.
-
-3. Create reusable “hunt modules”
-   For example:
-   “PowerShell LOLBins Hunt Module”
-
-“ProgramData Staging Hunt Module”
-
-“Exfiltration by Cloud Services Hunt Module”
-
-These patterns repeat across many attacks.
-4. Set up MDE custom detection rules
-Turning parts of my hunting queries into automated alerts would let future incidents surface immediately instead of requiring manual hunting.
-5. Improve visualization
-Building an event timeline chart or MITRE heatmap at the start would help me see patterns faster.
+By correlating timestamps across these datasets, I reconstructed the full execution chain used for data exfiltration.  
 
 ---
 
-**✅ Summary of Improvements**
-If I had:
-stronger PowerShell controls
+#### 🧠 Analysis & Correlation  
 
-outbound firewall restrictions
+The correlated activity revealed a deliberate exfiltration workflow mapped to multiple MITRE ATT&CK techniques:  
 
-command-line auditing enabled earlier
+`T1059.001 | PowerShell`  
+`T1127 | Compile After Delivery`  
+`T1218 | Signed Binary Proxy Execution (MpCmdRun.exe)`  
+`T1041 | Exfiltration Over C2 Channel`  
 
-and automated hunt rules in place
+I then conducted deeper analysis using Advanced Hunting queries, visualizations, and process-tree inspections to confirm the relationships between PowerShell, compiler invocation, and network callbacks.  
 
-…the exfiltration attempt would have been blocked or detected instantly.
-Moving forward, these improvements will make my hunts faster, more accurate, and more repeatable — exactly what an enterprise SOC would expect.
+---
+
+#### 🛠 Remediation & Hardening  
+
+To remediate and secure the host, I executed **`final-hardening.ps1`**, which enforced:  
+
+- Removal of 7-Zip  
+- Enforcement of TLS 1.2 only  
+- Defender real-time protections enabled  
+- Firewall and advanced audit policies applied  
+- Strong password and lockout policies configured  
+- Command-line auditing activated  
+
+---
+
+#### 🔍 Verification  
+
+After remediation, I validated system integrity using:  
+
+- `Get-MpComputerStatus` → verified Defender status  
+- Fresh MDE Advanced Hunting queries → no new indicators of compromise  
+- Manual directory inspection (`C:\ProgramData`) → confirmed removal of `exfiltratedata.ps1`  
+
+✅ **Result:** The system was fully hardened, telemetry was clean, and no further suspicious activity was detected.  
+
+
+---
+
+## 🔧 Step 7 | Improvement
+
+**Goal:**  
+Strengthen security posture and refine investigation methods for the next hunt.
+
+---
+
+#### ✅ What Could Have Prevented This Attack?
+
+Several preventative controls could have stopped or significantly limited the original attack chain:
+
+1. **Remove or restrict archival tools (7-Zip, WinRAR, etc.)**  
+   The attack relied on 7-Zip to compress data. If 7-Zip had never been installed or was restricted via AppLocker/WDAC, the script would have failed.
+
+2. **Enforce strict PowerShell execution policies**  
+   The script used `-ExecutionPolicy Bypass`. Device Guard / AppLocker / WDAC and constrained language mode could block bypass attempts and prevent unauthorized script execution.
+
+3. **Enable command-line auditing earlier**  
+   Command-line auditing dramatically improves visibility. If it had been enabled, detection and attribution would have been faster.
+
+4. **Restrict write access to `C:\ProgramData`**  
+   Preventing non-admin write access would block easy script staging in `ProgramData`, removing a common foothold for drop-and-execute payloads.
+
+5. **Egress filtering / outbound firewall rules**  
+   Blocking or alerting on outbound GitHub RAW requests (a common exfiltration/staging channel) would have caught this behavior immediately.
+
+6. **Automated detection rules in MDE**  
+   Custom KQL detection rules could alert on combinations like:  
+   - PowerShell + `Invoke-WebRequest`  
+   - 7-Zip archive creation immediately preceded by PowerShell  
+   - `cmd.exe` launching `powershell.exe` with bypass flags
+
+---
+
+#### ✅ How I Could Improve My Hunting Process
+
+Reflecting on the investigation, I identified several process and tooling improvements:
+
+1. **Build a timeline correlation query earlier**  
+   Create a single query that joins `DeviceProcessEvents`, `DeviceFileEvents`, and `DeviceNetworkEvents` to rapidly produce an execution timeline. I reconstructed this manually during the hunt; automating it would save time.
+
+2. **Automate extraction of suspicious indicators**  
+   Use watchlists or custom tables to track:
+   - Investigated IPs  
+   - Suspicious hashes  
+   - Known-bad folders  
+   This speeds up triage and reuse across incidents.
+
+3. **Create reusable “hunt modules”**  
+   Develop modular templates for common patterns, for example:
+   - *PowerShell LOLBins Hunt Module*  
+   - *ProgramData Staging Hunt Module*  
+   - *Exfiltration-by-Cloud-Services Hunt Module*  
+   These save time and ensure consistent coverage.
+
+4. **Convert hunts into MDE custom detections**  
+   Turn repeatable hunt queries into continuous alerts so incidents surface automatically rather than only during manual investigation.
+
+5. **Improve visualization**  
+   Build an event timeline chart and a MITRE heatmap at the start of triage to surface patterns faster and guide analysis.
+
+---
+
+#### ✅ Summary of Improvements
+
+If I had implemented:
+- stronger PowerShell controls,  
+- outbound firewall restrictions,  
+- command-line auditing enabled earlier, and  
+- automated hunt/detection rules in MDE,
+
+…this exfiltration attempt would likely have been blocked or detected far earlier. Moving forward, these changes will make hunts faster, more accurate, and more repeatable — exactly what an enterprise SOC expects.
+
