@@ -112,7 +112,7 @@ The query revealed a clear sequence of commands executed between **10:02:15 AM �
 3️⃣ `7z.exe a C:\ProgramData\employee-data-20251107180216.zip C:\ProgramData\employee-data-temp20251107180216.csv`
 
 <p align="left">
-  <img src="images/Screenshot 2025-11-04 7.png" width="600">
+  <img src="images/Screenshot 2025-11-07 7.png" width="600">
 </p>
 
 **Interpretation:**
@@ -142,7 +142,7 @@ A new PowerShell script **exfiltratedata.ps1** was created in `C:\ProgramData\` 
 | 2025-11-07 10:02:26 AM | exfiltratedata.ps1 | C:\ProgramData\ | FileCreated | ab1bfdfa335b724ba… |
 
 <p align="left">
-  <img src="images/Screenshot 2025-11-04 8.png" width="600">
+  <img src="images/Screenshot 2025-11-07 8.png" width="600">
 </p>
 
 **Correlation:**
@@ -174,7 +174,7 @@ Immediately following the execution of `exfiltratedata.ps1`, the host initiated 
 | 10:02 AM  | powershell.exe | 20.60.133.132   | —                         | 443  | TCP      | ConnectionSuccess |
 
 <p align="left">
-  <img src="images/Screenshot 2025-11-04 9.png" width="600">
+  <img src="images/Screenshot 2025-11-07 9.png" width="600">
 </p>
 
 **Interpretation:**
@@ -279,7 +279,7 @@ DeviceProcessEvents
 **Results Overview**
 
 <p align="left">
-  <img src="images/Screenshot 2025-11-04 10.png" width="600">
+  <img src="images/Screenshot 2025-11-07 10.png" width="600">
 </p>
 
 The results revealed a clear execution chain repeating throughout the morning of **November 7, 2025**, centered around PowerShell and command-line activity.
@@ -291,13 +291,13 @@ Notable findings include:
 * Multiple PowerShell executions originating from `cmd.exe` sessions — suggesting scripted automation rather than user-initiated tasks
 
 <p align="left">
-  <img src="images/Screenshot 2025-11-04 11.png" width="600">
+  <img src="images/Screenshot 2025-11-07 11.png" width="600">
 </p>
 
 These repeated transitions between `cmd.exe` → `powershell.exe` → `csc.exe` → `MpCmdRun.exe` closely mirror known defense-evasion and execution patterns seen in fileless malware and living-off-the-land techniques (LOLBins).
 
 <p align="left">
-  <img src="images/Screenshot 2025-11-04 12.png" width="600">
+  <img src="images/Screenshot 2025-11-07 12.png" width="600">
 </p>
 
 **MITRE ATT&CK Mapping**
@@ -352,7 +352,7 @@ The goal is to **lock down the system**, confirm that **no further exfiltration 
 * Remove known vulnerable 3rd-party remnants (e.g., old 7-Zip installers)
 
 <p align="left">
-  <img src="images/Screenshot 2025-11-04 13.png" width="600">
+  <img src="images/Screenshot 2025-11-08 13.png" width="600">
 </p>
 
 **Result:**
@@ -381,7 +381,7 @@ Get-MpComputerStatus | Select AMServiceEnabled, RealTimeProtectionEnabled, Cloud
 `CloudEnabled = True`
 
 <p align="left">
-  <img src="images/Screenshot 2025-11-04 14.png" width="600">
+  <img src="images/Screenshot 2025-11-08 14.png" width="600">
 </p>
 
 This confirms that real-time protection, cloud integration, and Defender services are all fully operational post-hardening.
@@ -399,7 +399,7 @@ auditpol /set /subcategory:"Process Creation" /success:enable /failure:enable
 > In Windows 11/Server, ensure “Include command line in process creation events” is enabled in the EDR policy or registry.
 
 <p align="left">
-  <img src="images/Screenshot 2025-11-04 15.png" width="600">
+  <img src="images/Screenshot 2025-11-08 15.png" width="600">
 </p>
 
 This ensures future PowerShell or CMD activity will include full command-line arguments in MDE telemetry for deep forensic visibility.
@@ -420,7 +420,7 @@ DeviceFileEvents
 ```
 
 <p align="left">
-  <img src="images/Screenshot 2025-11-04 16.png" width="600">
+  <img src="images/Screenshot 2025-11-08 16.png" width="600">
 </p>
 
 **Check DeviceProcessEvents for archive and execution chains**
@@ -434,7 +434,7 @@ DeviceProcessEvents
 ```
 
 <p align="left">
-  <img src="images/Screenshot 2025-11-04 17.png" width="600">
+  <img src="images/Screenshot 2025-11-08 17.png" width="600">
 </p>
 
 **Check DeviceNetworkEvents for outbound connections to suspicious domains/IPs**
@@ -447,7 +447,7 @@ DeviceNetworkEvents
 ```
 
 <p align="left">
-  <img src="images/Screenshot 2025-11-04 18.png" width="600">
+  <img src="images/Screenshot 2025-11-08 18.png" width="600">
 </p>
 
 **Expected Result:**
@@ -503,13 +503,13 @@ Remove-Item "C:\ProgramData\exfiltratedata.ps1" -Force
 **BEFORE:**
 
 <p align="left">
-  <img src="images/Screenshot 2025-11-04 19.png" width="600">
+  <img src="images/Screenshot 2025-11-08 19.png" width="600">
 </p>
 
 **AFTER:**
 
 <p align="left">
-  <img src="images/Screenshot 2025-11-04 20.png" width="600">
+  <img src="images/Screenshot 2025-11-08 20.png" width="600">
 </p>
 
 ---
