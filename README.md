@@ -12,7 +12,36 @@
 
 ---
 
-## 🧠 Environment Details
+## ℹ️ Overview
+
+This lab simulates an **insider threat data exfiltration investigation** within an enterprise environment using **Microsoft Defender for Endpoint (MDE)** and **Kusto Query Language (KQL)**.
+
+---
+
+I intentionally executed a controlled PowerShell script on a Windows 11 endpoint to simulate a **PIP’d employee exfiltrating confidential company data**.
+The script compressed fake employee records and transmitted them over HTTPS to mimic a real-world data theft attempt.
+
+I then:
+
+1. **Captured** telemetry from MDE tables (`DeviceProcessEvents`, `DeviceFileEvents`, `DeviceNetworkEvents`)
+2. **Analyzed** the attack sequence using Advanced Hunting queries
+3. **Correlated** PowerShell, 7-Zip, and outbound network activity to identify malicious behavior
+4. **Mapped** findings to relevant MITRE ATT&CK techniques
+5. **Remediated** the host and verified post-incident hardening through MDE queries and PowerShell auditing
+
+This demonstrates my ability to:
+
+* Investigate insider threats using Microsoft Defender for Endpoint
+* Perform correlation across process, file, and network telemetry
+* Identify attack patterns through MITRE ATT&CK mapping
+* Apply and verify host-level remediation and hardening controls
+
+---
+
+## 🖳 Lab Workflow
+
+### 1️⃣ Provision Windows 11 VM & onboard it to MDE
+
 
 | Component         | Details                                |
 | ----------------- | -------------------------------------- |
@@ -29,17 +58,6 @@ The **Cyber Range** is a shared, cloud-based training environment that simulates
 Each participant operates within a safe, controlled subnet where malicious activity can be executed and detected without impacting production systems.
 
 ---
-
-## ⚙️ Lab Workflow
-
-### Provision Windows 11 VM & onboard it to MDE
-
-<p align="left">
-  <img src="images/Screenshot 2025-11-07 1.png" width="600">
-  <img src="images/Screenshot 2025-11-07 2.png" width="600">
-  <img src="images/Screenshot 2025-11-07 3.png" width="600">
-  <img src="images/Screenshot 2025-11-07 4.png" width="600">
-</p>
 
 After confirming telemetry flow (process, file, and network events), I executed this simulated malicious command:
 
@@ -61,9 +79,8 @@ This downloaded and executed `exfiltratedata.ps1`, which:
 </p>
 
 ---
-### Investigation Scenario: Data Exfiltration from PIPd Employee
 
-## 1️⃣ Step 1 | Preparation
+### 2️⃣ Preparation
 
 **Scenario Setup**
 A PIP’d employee, John Doe, has become a potential insider threat. Management suspects possible data exfiltration from his corporate workstation (awl4114awl-mde).
@@ -84,7 +101,7 @@ John may have used a compression utility (e.g., WinRAR, 7-Zip, WinZip) to archiv
 * Cross-reference that window against outbound network traffic to detect exfiltration channels.
 * Map any suspicious behavior to MITRE ATT&CK TTPs (e.g., T1560 – Archive Collected Data, T1048 – Exfiltration Over Alternative Protocol).
 ---
-## 🧩 Step 2 | Data Collection
+### 3️⃣ Data Collection
 
 **Goal:**
 Gather relevant evidence from logs, file activity, and network telemetry to validate the hypothesis of possible data compression and exfiltration by the PIP’d employee.
@@ -103,7 +120,7 @@ All data was collected from the virtual machine **awl4114awl-mde**, assigned to 
 
 ---
 
-#### 🔹 **Process Activity (DeviceProcessEvents)**
+#### **Process Activity (DeviceProcessEvents)**
 
 ```kusto
 let archive_applications = dynamic(["winrar.exe", "7z.exe", "winzip32.exe", "peazip.exe",
@@ -116,9 +133,9 @@ DeviceProcessEvents
 
 **Observation:**
 The query revealed a clear sequence of commands executed between **10:02:15 AM – 10:02:26 AM (2025-11-07)**:
-1️⃣ `cmd.exe /c powershell.exe -ExecutionPolicy Bypass -File C:\ProgramData\exfiltratedata.ps1`
-2️⃣ `powershell.exe -ExecutionPolicy Bypass -File C:\ProgramData\exfiltratedata.ps1`
-3️⃣ `7z.exe a C:\ProgramData\employee-data-20251107180216.zip C:\ProgramData\employee-data-temp20251107180216.csv`
+1️. `cmd.exe /c powershell.exe -ExecutionPolicy Bypass -File C:\ProgramData\exfiltratedata.ps1`
+2️. `powershell.exe -ExecutionPolicy Bypass -File C:\ProgramData\exfiltratedata.ps1`
+3️. `7z.exe a C:\ProgramData\employee-data-20251107180216.zip C:\ProgramData\employee-data-temp20251107180216.csv`
 
 <p align="left">
   <img src="images/Screenshot 2025-11-07 7.png" width="600">
@@ -133,7 +150,7 @@ The query revealed a clear sequence of commands executed between **10:02:15 AM �
 
 ---
 
-#### 🔹 **File Activity (DeviceFileEvents)**
+#### **File Activity (DeviceFileEvents)**
 
 ```kusto
 let specificTime = datetime(2025-11-07T10:02:26Z);
@@ -162,7 +179,7 @@ A new PowerShell script **exfiltratedata.ps1** was created in `C:\ProgramData\` 
 
 ---
 
-#### 🔹 **Network Activity (DeviceNetworkEvents)**
+#### **Network Activity (DeviceNetworkEvents)**
 
 ```kusto
 let specificTime = datetime(2025-11-07T10:02:26Z);
@@ -194,7 +211,7 @@ Immediately following the execution of `exfiltratedata.ps1`, the host initiated 
 
 ---
 
-✅ **Summary**
+**Summary**
 All three evidence sources align:
 
 * Process logs confirm PowerShell invoking 7-Zip.
@@ -204,7 +221,8 @@ All three evidence sources align:
 This collective telemetry supports the working hypothesis that **John Doe** used PowerShell to compress and exfiltrate sensitive data from his assigned workstation.
 
 ---
-## 🧠 Step 3 | Data Analysis
+
+### 4️⃣ Data Analysis
 
 **Goal:**
 Analyze collected MDE telemetry to validate the hypothesis of PowerShell-based remote code execution (RCE) and data exfiltration.
@@ -214,14 +232,14 @@ Correlate process, file, and network events captured in Microsoft Defender for E
 
 ---
 
-#### 🔹 Dataset Overview
+#### Dataset Overview
 
 The dataset (**AdvancedHuntingResults – RCE Detection – Jordan Calvert.csv**) contained roughly **10 key events** between **09:57:05 AM – 09:57:12 AM UTC** on **Nov 7, 2025**.
 These entries covered process, file, and network activities showing a full **PowerShell → compiler → network** chain indicative of scripted code delivery and outbound callbacks.
 
 ---
 
-#### 🔹 Observed Sequence
+#### Observed Sequence
 
 | Time (UTC) | Event Type | File / Process                     | Description / Command Excerpt                 | Remote IP     |
 | ---------- | ---------- | ---------------------------------- | --------------------------------------------- | ------------- |
@@ -234,7 +252,7 @@ These entries covered process, file, and network activities showing a full **Pow
 
 ---
 
-#### 🔹 Correlation & Interpretation
+#### Correlation & Interpretation
 
 * **PowerShell → CSC.EXE** — PowerShell launches `csc.exe` (C# compiler), commonly abused for in-memory payload compilation *(T1127 – Compile After Delivery)*.
 * **MpCmdRun.exe** — Windows Defender binary leveraged as a LOLBin *(T1218 – Signed Binary Proxy Execution)*.
@@ -243,14 +261,14 @@ These entries covered process, file, and network activities showing a full **Pow
 
 ---
 
-#### 🔹 Visual Analysis
+#### Visual Analysis
 
 The **timeline visualization** highlights the rapid progression of events — PowerShell spawning compiler and Defender processes, followed immediately by outbound network activity.
 The **correlation chart** shows multiple outbound connections initiated within five seconds of file creation and process execution, linking local PowerShell actions to external hosts.
 
 ---
 
-#### 🔹 MITRE ATT&CK Mapping
+#### MITRE ATT&CK Mapping
 
 | Technique ID  | Technique Name                | Evidence in Logs                     |
 | ------------- | ----------------------------- | ------------------------------------ |
@@ -261,12 +279,13 @@ The **correlation chart** shows multiple outbound connections initiated within f
 
 ---
 
-✅ **Summary**
+#### **Summary**
 The Advanced Hunting dataset validates a deliberate, automated PowerShell execution chain culminating in network communication consistent with **RCE** and **potential data exfiltration**.
 Evidence aligns with known threat behaviors in the **MITRE ATT&CK** framework and confirms the original hypothesis of **malicious insider activity**.
 
 ---
-## Step 4️ | Investigation
+
+### 5️⃣ Investigation
 
 **Goal:** Investigate suspicious findings, identify potential TTPs, and map observed behaviors to the MITRE ATT&CK framework.
 
@@ -334,16 +353,16 @@ Process/file/network correlation (`cmd` → `powershell` → `7z`; created `empl
 
 ---
 
-## Step 5 | Final Hardening Steps I Ran
+### 6️⃣ Final Hardening Steps I Ran
 
-#### 🔹 Purpose
+#### Purpose
 
 This step demonstrates the remediation and verification actions taken to fully secure the host after confirmed data exfiltration activity.
 The goal is to **lock down the system**, confirm that **no further exfiltration is occurring**, and create a **reproducible audit trail** showing complete remediation.
 
 ---
 
-#### 1️⃣ Run Final Hardening Script
+#### 1️. Run Final Hardening Script
 
 > *(Run as Administrator)*
 
@@ -370,7 +389,7 @@ Minor parameter warnings were non-critical.
 
 ---
 
-#### 2️⃣ Restart the Server
+#### 2️. Restart the Server
 
 ```powershell
 Restart-Computer -Force
@@ -378,13 +397,13 @@ Restart-Computer -Force
 
 ---
 
-#### 3️⃣ Verify Windows Defender is Active
+#### 3️. Verify Windows Defender is Active
 
 ```powershell
 Get-MpComputerStatus | Select AMServiceEnabled, RealTimeProtectionEnabled, CloudEnabled
 ```
 
-✅ Ensure:
+Ensure:
 `AMServiceEnabled = True`
 `RealTimeProtectionEnabled = True`
 `CloudEnabled = True`
@@ -397,7 +416,7 @@ This confirms that real-time protection, cloud integration, and Defender service
 
 ---
 
-#### 4️⃣ Turn On / Verify Advanced Auditing
+#### 4️. Turn On / Verify Advanced Auditing
 
 *(Process creation with command line enabled for visibility)*
 
@@ -415,7 +434,7 @@ This ensures future PowerShell or CMD activity will include full command-line ar
 
 ---
 
-#### 5️⃣ Re-run MDE Advanced Hunting Queries
+#### 5️. Re-run MDE Advanced Hunting Queries
 
 *(To confirm no new script, archive, or outbound network activity)*
 
@@ -466,9 +485,9 @@ Even if the results show minor activity (legit system noise, background Defender
 
 ---
 
-### 🧱 Hardening Verification Summary
+### Hardening Verification Summary
 
-**1️⃣ Hardening script executed successfully**
+**1. Hardening script executed successfully**
 
 * 7-Zip removed (data-compression tool eliminated)
 * Guest/Administrator accounts disabled
@@ -478,19 +497,19 @@ Even if the results show minor activity (legit system noise, background Defender
 * Firewall active on all profiles
 * Auditing applied successfully (minor non-impact errors)
 
-**2️⃣ Defender status check**
+**2️. Defender status check**
 
 ```powershell
 Get-MpComputerStatus
 ```
 
-✅ `AMServiceEnabled = True`, `RealTimeProtectionEnabled = True`, `CloudEnabled = True`
+`AMServiceEnabled = True`, `RealTimeProtectionEnabled = True`, `CloudEnabled = True`
 Confirms active endpoint protection and Defender telemetry reporting.
 
-**3️⃣ Auditing**
+**3️. Auditing**
 `auditpol` confirms “Process Creation” auditing enabled — critical for visibility in MDE.
 
-**4️⃣ Verification queries (post-remediation)**
+**4️. Verification queries (post-remediation)**
 
 * `DeviceFileEvents`: no new hits for `exfiltratedata.ps1` or `employee-data.zip` → no malicious file creation
 * `DeviceProcessEvents`: no `7z.exe` or PowerShell exfil commands → no suspicious execution
@@ -498,7 +517,7 @@ Confirms active endpoint protection and Defender telemetry reporting.
 
 ---
 
-✅ **Conclusion**
+🏁 **Conclusion**
 Your host **awl4114awl-mde** is now **clean, hardened, and verified** by telemetry and Defender status.
 No persistence or recurring exfiltration observed after remediation.
 
@@ -523,20 +542,20 @@ Remove-Item "C:\ProgramData\exfiltratedata.ps1" -Force
 
 ---
 
-### ✅ Final Verification
+### Final Verification
 
-No new 7-Zip, PowerShell, or network exfiltration activity was observed after cleanup, confirming that the system is fully **remediated and hardened against recurrence**.
+No new 7-Zip, PowerShell, or network exfiltration activity was observed after cleanup, confirming that the system is fully remediated and hardened against recurrence.
 
 ---
 
-## 🧾 Step 6 | Documentation
+### 7️⃣ Documentation
 
 **Goal:**  
 Record what I did, what I found, and what it means for future hunts.  
 
 ---
 
-#### ✅ What I Did
+#### What I Did
 
 Here is a concise record of my full investigation workflow:  
 
@@ -546,7 +565,7 @@ Here is a concise record of my full investigation workflow:
 
 ---
 
-#### 🧩 Telemetry Collection  
+#### Telemetry Collection  
 
 I collected telemetry from three core MDE tables to build a complete activity picture:  
 
@@ -558,7 +577,7 @@ By correlating timestamps across these datasets, I reconstructed the full execut
 
 ---
 
-#### 🧠 Analysis & Correlation  
+#### Analysis & Correlation  
 
 The correlated activity revealed a deliberate exfiltration workflow mapped to multiple MITRE ATT&CK techniques:  
 
@@ -571,7 +590,7 @@ I then conducted deeper analysis using Advanced Hunting queries, visualizations,
 
 ---
 
-#### 🛠 Remediation & Hardening  
+#### Remediation & Hardening  
 
 To remediate and secure the host, I executed **`final-hardening.ps1`**, which enforced:  
 
@@ -584,7 +603,7 @@ To remediate and secure the host, I executed **`final-hardening.ps1`**, which en
 
 ---
 
-#### 🔍 Verification  
+#### Verification  
 
 After remediation, I validated system integrity using:  
 
@@ -592,19 +611,19 @@ After remediation, I validated system integrity using:
 - Fresh MDE Advanced Hunting queries → no new indicators of compromise  
 - Manual directory inspection (`C:\ProgramData`) → confirmed removal of `exfiltratedata.ps1`  
 
-✅ **Result:** The system was fully hardened, telemetry was clean, and no further suspicious activity was detected.  
+**Result:** The system was fully hardened, telemetry was clean, and no further suspicious activity was detected.  
 
 
 ---
 
-## 🔧 Step 7 | Improvement
+### 8️⃣ Improvement
 
 **Goal:**  
 Strengthen security posture and refine investigation methods for the next hunt.
 
 ---
 
-#### ✅ What Could Have Prevented This Attack?
+#### ❔ What Could Have Prevented This Attack?
 
 Several preventative controls could have stopped or significantly limited the original attack chain:
 
@@ -631,7 +650,7 @@ Several preventative controls could have stopped or significantly limited the or
 
 ---
 
-#### ✅ How I Could Improve My Hunting Process
+#### ❔ How I Could Improve My Hunting Process
 
 Reflecting on the investigation, I identified several process and tooling improvements:
 
@@ -660,7 +679,7 @@ Reflecting on the investigation, I identified several process and tooling improv
 
 ---
 
-#### ✅ Summary of Improvements
+#### Summary of Improvements
 
 If I had implemented:
 - stronger PowerShell controls,  
