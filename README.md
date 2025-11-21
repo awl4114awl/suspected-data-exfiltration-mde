@@ -38,7 +38,7 @@ This demonstrates my ability to:
 
 ---
 
-## 🖳 Lab Workflow
+## 📓 Lab Workflow
 
 ### 1️⃣ Provision Windows 11 VM & onboard it to MDE
 
