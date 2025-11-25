@@ -1,4 +1,4 @@
-# 🧰 Suspected Data Exfiltration (Microsoft Defender for Endpoint)
+# 💻 Suspected Data Exfiltration (Microsoft Defender for Endpoint)
 
 ![Microsoft Defender](https://img.shields.io/badge/Microsoft_Defender-0078D4?style=for-the-badge\&logo=microsoftdefender\&logoColor=white)
 ![PowerShell](https://img.shields.io/badge/PowerShell-5391FE?style=for-the-badge\&logo=powershell\&logoColor=white)
