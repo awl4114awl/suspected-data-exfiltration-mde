@@ -5,34 +5,30 @@
 ![Microsoft Defender for Endpoint](https://img.shields.io/badge/Microsoft_Defender_for_Endpoint-7A57D1?style=for-the-badge\&logo=microsoftdefender\&logoColor=white)
 ![Tenable](https://img.shields.io/badge/Tenable-00A0E0?style=for-the-badge\&logo=tenable\&logoColor=white)
 ![PowerShell](https://img.shields.io/badge/PowerShell-5391FE?style=for-the-badge\&logo=powershell\&logoColor=white)
-![Windows](https://img.shields.io/badge/Windows_11-0078D6?style=for-the-badge\&logo=windows11\&logoColor=white)
-
-> ⚙️ This project demonstrates an end-to-end **insider-threat investigation** using **Microsoft Defender for Endpoint (MDE)** within the shared **Cyber Range** environment.
-> I simulated a malicious employee attempting to **compress and exfiltrate sensitive data**, then performed full detection, analysis, and remediation using **Advanced Hunting (KQL)** telemetry.
+![Windows 11](https://img.shields.io/badge/Windows_11-0078D6?style=for-the-badge\&logo=windows11\&logoColor=white)
 
 ---
 
 ## ℹ️ Overview
 
-This lab simulates an **insider threat data exfiltration investigation** within an enterprise environment using **Microsoft Defender for Endpoint (MDE)** and **Kusto Query Language (KQL)**.
+This lab was carried out in **The Cyber Range**, an Azure-hosted enterprise environment where I replicate real-world detection, investigation, and remediation workflows. I simulate an insider-threat data exfiltration scenario using Microsoft Defender for Endpoint (MDE) and Kusto Query Language (KQL).
 
 ---
 
-I intentionally executed a controlled PowerShell script on a Windows 11 endpoint to simulate a **PIP’d employee exfiltrating confidential company data**.
-The script compressed fake employee records and transmitted them over HTTPS to mimic a real-world data theft attempt.
+I intentionally executed a controlled PowerShell script on a Windows 11 endpoint to simulate a **PIP’d employee exfiltrating confidential company data**. The script compressed fake employee records and transmitted them over HTTPS to mimic real-world data theft.
 
 I then:
 
 1. **Captured** telemetry from MDE tables (`DeviceProcessEvents`, `DeviceFileEvents`, `DeviceNetworkEvents`)
 2. **Analyzed** the attack sequence using Advanced Hunting queries
-3. **Correlated** PowerShell, 7-Zip, and outbound network activity to identify malicious behavior
-4. **Mapped** findings to relevant MITRE ATT&CK techniques
-5. **Remediated** the host and verified post-incident hardening through MDE queries and PowerShell auditing
+3. **Correlated** PowerShell, 7-Zip, and outbound network activity
+4. **Mapped** the behavior to MITRE ATT&CK techniques
+5. **Remediated** the host and verified post-incident hardening
 
 This demonstrates my ability to:
 
 * Investigate insider threats using Microsoft Defender for Endpoint
-* Perform correlation across process, file, and network telemetry
+* Correlate events across process, file, and network telemetry
 * Identify attack patterns through MITRE ATT&CK mapping
 * Apply and verify host-level remediation and hardening controls
 
