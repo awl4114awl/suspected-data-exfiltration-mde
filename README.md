@@ -11,26 +11,24 @@
 
 ## ℹ️ Overview
 
-This lab was carried out in **The Cyber Range**, an Azure-hosted enterprise environment where I replicate real-world detection, investigation, and remediation workflows. I simulate an insider-threat data exfiltration scenario using Microsoft Defender for Endpoint (MDE) and Kusto Query Language (KQL).
+I did this lab in **The Cyber Range**, an Azure-hosted enterprise environment where I recreate realistic detection, investigation, and incident-response workflows. In this scenario, I simulated an insider-threat data exfiltration attempt and used **Microsoft Defender for Endpoint (MDE)** and **Kusto Query Language (KQL)** to investigate the full attack path.
 
----
+To generate telemetry, I ran a controlled PowerShell script on a Windows 11 endpoint to mimic a PIP’d employee attempting to steal confidential company data. The script compressed fabricated employee records using 7-Zip and attempted to transmit the archive over HTTPS, creating a realistic exfiltration pattern for MDE to capture.
 
-I intentionally executed a controlled PowerShell script on a Windows 11 endpoint to simulate a **PIP’d employee exfiltrating confidential company data**. The script compressed fake employee records and transmitted them over HTTPS to mimic real-world data theft.
+Once the activity was underway, I walked through a structured investigation:
 
-I then:
+1. **Collected** telemetry from key MDE tables (`DeviceProcessEvents`, `DeviceFileEvents`, `DeviceNetworkEvents`)
+2. **Analyzed** the execution sequence using Advanced Hunting queries
+3. **Correlated** PowerShell execution, file compression behavior, and outbound network connections
+4. **Mapped** each stage of the attack to relevant MITRE ATT&CK techniques
+5. **Remediated** the endpoint and confirmed hardening through follow-up telemetry
 
-1. **Captured** telemetry from MDE tables (`DeviceProcessEvents`, `DeviceFileEvents`, `DeviceNetworkEvents`)
-2. **Analyzed** the attack sequence using Advanced Hunting queries
-3. **Correlated** PowerShell, 7-Zip, and outbound network activity
-4. **Mapped** the behavior to MITRE ATT&CK techniques
-5. **Remediated** the host and verified post-incident hardening
+This lab will show  my ability to:
 
-This demonstrates my ability to:
-
-* Investigate insider threats using Microsoft Defender for Endpoint
-* Correlate events across process, file, and network telemetry
-* Identify attack patterns through MITRE ATT&CK mapping
-* Apply and verify host-level remediation and hardening controls
+* Investigate insider-threat activity using Microsoft Defender for Endpoint
+* Correlate process, file, and network signals to rebuild an attack chain
+* Apply MITRE ATT&CK classification to real telemetry
+* Validate remediation and post-incident hardening in a modern SOC workflow
 
 ---
 
