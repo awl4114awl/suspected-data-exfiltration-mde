@@ -1,11 +1,11 @@
 # 💻 Suspected Data Exfiltration (Microsoft Defender for Endpoint)
 
-![Microsoft Defender](https://img.shields.io/badge/Microsoft_Defender-0078D4?style=for-the-badge\&logo=microsoftdefender\&logoColor=white)
-![PowerShell](https://img.shields.io/badge/PowerShell-5391FE?style=for-the-badge\&logo=powershell\&logoColor=white)
+![Cyber Range](https://img.shields.io/badge/Cyber_Range-Lab_Environment-purple?style=for-the-badge)
 ![Azure](https://img.shields.io/badge/Azure-0078D4?style=for-the-badge\&logo=microsoftazure\&logoColor=white)
-![Windows](https://img.shields.io/badge/Windows_11-0078D6?style=for-the-badge\&logo=windows11\&logoColor=white)
+![Microsoft Defender](https://img.shields.io/badge/Microsoft_Defender-0078D4?style=for-the-badge\&logo=microsoftdefender\&logoColor=white)
 ![Tenable](https://img.shields.io/badge/Tenable-00A0E0?style=for-the-badge\&logo=tenable\&logoColor=white)
-![Security](https://img.shields.io/badge/Cyber_Range-orange?style=for-the-badge)
+![PowerShell](https://img.shields.io/badge/PowerShell-5391FE?style=for-the-badge\&logo=powershell\&logoColor=white)
+![Windows](https://img.shields.io/badge/Windows_11-0078D6?style=for-the-badge\&logo=windows11\&logoColor=white)
 
 > ⚙️ This project demonstrates an end-to-end **insider-threat investigation** using **Microsoft Defender for Endpoint (MDE)** within the shared **Cyber Range** environment.
 > I simulated a malicious employee attempting to **compress and exfiltrate sensitive data**, then performed full detection, analysis, and remediation using **Advanced Hunting (KQL)** telemetry.
