@@ -1,12 +1,5 @@
 # Suspected Data Exfiltration (Microsoft Defender for Endpoint)
 
-![Cyber Range](https://img.shields.io/badge/Cyber_Range-Lab_Environment-purple?style=for-the-badge)
-![Azure](https://img.shields.io/badge/Azure-0078D4?style=for-the-badge\&logo=microsoftazure\&logoColor=white)
-![Microsoft Defender for Endpoint](https://img.shields.io/badge/Microsoft_Defender_for_Endpoint-7A57D1?style=for-the-badge\&logo=microsoftdefender\&logoColor=white)
-![Tenable](https://img.shields.io/badge/Tenable-00A0E0?style=for-the-badge\&logo=tenable\&logoColor=white)
-![PowerShell](https://img.shields.io/badge/PowerShell-5391FE?style=for-the-badge\&logo=powershell\&logoColor=white)
-![Windows 11](https://img.shields.io/badge/Windows_11-0078D6?style=for-the-badge\&logo=windows11\&logoColor=white)
-
 ## ℹ️ Overview
 
 I did this lab in [The Cyber Range](http://joshmadakor.tech/cyber-range), an Azure-hosted enterprise environment where I recreate realistic detection, investigation, and incident-response workflows. In this scenario, I simulated an insider-threat data exfiltration attempt and used Microsoft Defender for Endpoint (MDE) and Kusto Query Language (KQL) to investigate the full attack path.
