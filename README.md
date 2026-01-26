@@ -1,4 +1,4 @@
-# 💻 Suspected Data Exfiltration (Microsoft Defender for Endpoint)
+# Suspected Data Exfiltration (Microsoft Defender for Endpoint)
 
 ![Cyber Range](https://img.shields.io/badge/Cyber_Range-Lab_Environment-purple?style=for-the-badge)
 ![Azure](https://img.shields.io/badge/Azure-0078D4?style=for-the-badge\&logo=microsoftazure\&logoColor=white)
@@ -7,21 +7,19 @@
 ![PowerShell](https://img.shields.io/badge/PowerShell-5391FE?style=for-the-badge\&logo=powershell\&logoColor=white)
 ![Windows 11](https://img.shields.io/badge/Windows_11-0078D6?style=for-the-badge\&logo=windows11\&logoColor=white)
 
----
-
 ## ℹ️ Overview
 
-I did this lab in **The Cyber Range**, an Azure-hosted enterprise environment where I recreate realistic detection, investigation, and incident-response workflows. In this scenario, I simulated an insider-threat data exfiltration attempt and used **Microsoft Defender for Endpoint (MDE)** and **Kusto Query Language (KQL)** to investigate the full attack path.
+I did this lab in [The Cyber Range](http://joshmadakor.tech/cyber-range), an Azure-hosted enterprise environment where I recreate realistic detection, investigation, and incident-response workflows. In this scenario, I simulated an insider-threat data exfiltration attempt and used Microsoft Defender for Endpoint (MDE) and Kusto Query Language (KQL) to investigate the full attack path.
 
 To generate telemetry, I ran a controlled PowerShell script on a Windows 11 endpoint to mimic a PIP’d employee attempting to steal confidential company data. The script compressed fabricated employee records using 7-Zip and attempted to transmit the archive over HTTPS, creating a realistic exfiltration pattern for MDE to capture.
 
 Once the activity was underway, I walked through a structured investigation:
 
-1. **Collected** telemetry from key MDE tables (`DeviceProcessEvents`, `DeviceFileEvents`, `DeviceNetworkEvents`)
-2. **Analyzed** the execution sequence using Advanced Hunting queries
-3. **Correlated** PowerShell execution, file compression behavior, and outbound network connections
-4. **Mapped** each stage of the attack to relevant MITRE ATT&CK techniques
-5. **Remediated** the endpoint and confirmed hardening through follow-up telemetry
+1. Collected telemetry from key MDE tables (`DeviceProcessEvents`, `DeviceFileEvents`, `DeviceNetworkEvents`)
+2. Analyzed the execution sequence using Advanced Hunting queries
+3. Correlated PowerShell execution, file compression behavior, and outbound network connections
+4. Mapped each stage of the attack to relevant MITRE ATT&CK techniques
+5. Remediated the endpoint and confirmed hardening through follow-up telemetry
 
 This lab will show  my ability to:
 
@@ -29,8 +27,6 @@ This lab will show  my ability to:
 * Correlate process, file, and network signals to rebuild an attack chain
 * Apply MITRE ATT&CK classification to real telemetry
 * Validate remediation and post-incident hardening in a modern SOC workflow
-
----
 
 ## 📓 Lab Workflow
 
@@ -47,7 +43,7 @@ This lab will show  my ability to:
 | **Public IP**     | 20.7.179.187                           |
 | **Private IP**    | 10.0.0.145                             |
 
-The **Cyber Range** is a shared, cloud-based training environment that simulates enterprise networks and real-world attack scenarios.
+Again, the Cyber Range is a shared, cloud-based training environment that simulates enterprise networks and real-world attack scenarios.
 Each participant operates within a safe, controlled subnet where malicious activity can be executed and detected without impacting production systems.
 
 ---
@@ -77,19 +73,19 @@ This downloaded and executed `exfiltratedata.ps1`, which:
 
 ### 2️⃣ Preparation
 
-**Scenario Setup**
+Scenario Setup
 A PIP’d employee, John Doe, has become a potential insider threat. Management suspects possible data exfiltration from his corporate workstation (awl4114awl-mde).
 My goal in this hunt is to validate or refute the hypothesis that John attempted to compress and transmit proprietary files off the network.
 
-**Hypothesis**
+Hypothesis
 John may have used a compression utility (e.g., WinRAR, 7-Zip, WinZip) to archive sensitive company files, followed by an upload or transfer to a cloud storage platform or external drive.
 
-**Initial Checks**
+Initial Checks
 
 * I confirmed the VM is visible in MDE and reporting live telemetry (✅ Active / Healthy).
 * I confirmed that process, file, and network event logs are being populated (DeviceProcessEvents, DeviceFileEvents, DeviceNetworkEvents).
 
-**Hunting Plan**
+Hunting Plan
 
 * I start broad with process events — identify any compression utilities executed by John.
 * I correlate timestamps with file activity (e.g., large ZIP or RAR creation).
@@ -100,24 +96,24 @@ John may have used a compression utility (e.g., WinRAR, 7-Zip, WinZip) to archiv
 
 ### 3️⃣ Data Collection
 
-**Goal:**
+Goal:
 Gather relevant evidence from logs, file activity, and network telemetry to validate the hypothesis of possible data compression and exfiltration by the PIP’d employee.
 
 ---
 
-#### **Overview**
+#### Overview
 
 To investigate the suspected insider activity, I queried telemetry from three key tables in Microsoft Defender for Endpoint (MDE):
 
-* **DeviceProcessEvents** – to capture process creation and execution chains
-* **DeviceFileEvents** – to identify file creation and modification activity
-* **DeviceNetworkEvents** – to track outbound connections made during the suspected exfiltration window
+* DeviceProcessEvents – to capture process creation and execution chains
+* DeviceFileEvents – to identify file creation and modification activity
+* DeviceNetworkEvents – to track outbound connections made during the suspected exfiltration window
 
 All data was collected from the virtual machine **awl4114awl-mde**, assigned to the employee *John Doe*.
 
 ---
 
-#### **Process Activity (DeviceProcessEvents)**
+#### Process Activity (DeviceProcessEvents)
 
 ```kusto
 let archive_applications = dynamic(["winrar.exe", "7z.exe", "winzip32.exe", "peazip.exe",
@@ -128,8 +124,8 @@ DeviceProcessEvents
 | order by Timestamp desc
 ```
 
-**Observation:**
-The query revealed a clear sequence of commands executed between **10:02:15 AM – 10:02:26 AM (2025-11-07)**:
+Observation:
+The query revealed a clear sequence of commands executed between *10:02:15 AM – 10:02:26 AM (2025-11-07):*
 
 1. `cmd.exe /c powershell.exe -ExecutionPolicy Bypass -File C:\ProgramData\exfiltratedata.ps1`
 2. `powershell.exe -ExecutionPolicy Bypass -File C:\ProgramData\exfiltratedata.ps1`
@@ -139,7 +135,7 @@ The query revealed a clear sequence of commands executed between **10:02:15 AM �
   <img src="images/Screenshot 2025-11-07 7.png" width="600">
 </p>
 
-**Interpretation:**
+Interpretation:
 
 * A PowerShell script named `exfiltratedata.ps1` executed from `C:\ProgramData\`, invoking 7-Zip to compress a temporary employee data CSV into a ZIP archive.
 * The session originated from a remote connection (`192.168.1.169`) via **AWL4114AWL**, and while 7-Zip itself is legitimate software, this usage pattern—especially under a non-interactive remote session—is highly suspicious.
@@ -148,7 +144,7 @@ The query revealed a clear sequence of commands executed between **10:02:15 AM �
 
 ---
 
-#### **File Activity (DeviceFileEvents)**
+#### File Activity (DeviceFileEvents)
 
 ```kusto
 let specificTime = datetime(2025-11-07T10:02:26Z);
@@ -158,7 +154,7 @@ DeviceFileEvents
 | order by Timestamp desc
 ```
 
-**Observation:**
+Observation:
 A new PowerShell script **exfiltratedata.ps1** was created in `C:\ProgramData\` at **10:02:26 AM** — the same timestamp associated with the 7-Zip process.
 
 | Timestamp              | FileName           | FolderPath      | ActionType  | SHA256             |
@@ -169,7 +165,7 @@ A new PowerShell script **exfiltratedata.ps1** was created in `C:\ProgramData\` 
   <img src="images/Screenshot 2025-11-07 8.png" width="600">
 </p>
 
-**Correlation:**
+Correlation:
 
 * The creation of `exfiltratedata.ps1` directly precedes its execution and the subsequent archive operation.
 * This confirms the script was dynamically dropped and executed — not pre-existing — a common tactic for staging and automating data theft.
@@ -177,7 +173,7 @@ A new PowerShell script **exfiltratedata.ps1** was created in `C:\ProgramData\` 
 
 ---
 
-#### **Network Activity (DeviceNetworkEvents)**
+#### Network Activity (DeviceNetworkEvents)
 
 ```kusto
 let specificTime = datetime(2025-11-07T10:02:26Z);
@@ -188,7 +184,7 @@ DeviceNetworkEvents
 | order by Timestamp asc
 ```
 
-**Observation:**
+Observation:
 Immediately following the execution of `exfiltratedata.ps1`, the host initiated multiple outbound HTTPS connections from `powershell.exe`:
 
 | Timestamp | Process        | Remote IP       | Remote URL                | Port | Protocol | ActionType        |
@@ -201,7 +197,7 @@ Immediately following the execution of `exfiltratedata.ps1`, the host initiated 
   <img src="images/Screenshot 2025-11-07 9.png" width="600">
 </p>
 
-**Interpretation:**
+Interpretation:
 
 * The script likely fetched or uploaded data via GitHub’s raw-content server — a known exfiltration/staging method.
 * The additional outbound connections to Microsoft Azure IP space may indicate command-and-control (C2) or staging activity.
@@ -209,7 +205,7 @@ Immediately following the execution of `exfiltratedata.ps1`, the host initiated 
 
 ---
 
-#### **Summary**
+#### Summary
 All three evidence sources align:
 
 * Process logs confirm PowerShell invoking 7-Zip.
@@ -222,10 +218,10 @@ This collective telemetry supports my working hypothesis that **John Doe** used 
 
 ### 4️⃣ Data Analysis
 
-**Goal:**
+Goal:
 Analyze collected MDE telemetry to validate the hypothesis of PowerShell-based remote code execution (RCE) and data exfiltration.
 
-**Activity:**
+Activity:
 I correlated process, file, and network events captured in Microsoft Defender for Endpoint (Advanced Hunting) from host **awl4114awl-mde** to confirm whether malicious automation occurred.
 
 ---
@@ -252,17 +248,17 @@ These entries covered process, file, and network activities showing a full **Pow
 
 #### Correlation & Interpretation
 
-* **PowerShell → CSC.EXE** — PowerShell launched `csc.exe` (C# compiler), commonly abused for in-memory payload compilation *(T1127 – Compile After Delivery)*.
-* **MpCmdRun.exe** — Windows Defender binary leveraged as a LOLBin *(T1218 – Signed Binary Proxy Execution)*.
-* **Network Connections** — Outbound traffic within seconds to Azure IPs (`168.63.129.16` / `104.208.16.95`) suggests possible command-and-control (C2) callback or data staging.
-* **File Artifacts** — Ephemeral DLLs (`m1rbjxlr.dll`) and transient scripts indicate dynamic payload generation versus legitimate system updates.
+* PowerShell → CSC.EXE — PowerShell launched `csc.exe` (C# compiler), commonly abused for in-memory payload compilation *(T1127 – Compile After Delivery)*.
+* MpCmdRun.exe — Windows Defender binary leveraged as a LOLBin *(T1218 – Signed Binary Proxy Execution)*.
+* Network Connections — Outbound traffic within seconds to Azure IPs (`168.63.129.16` / `104.208.16.95`) suggests possible command-and-control (C2) callback or data staging.
+* File Artifacts — Ephemeral DLLs (`m1rbjxlr.dll`) and transient scripts indicate dynamic payload generation versus legitimate system updates.
 
 ---
 
 #### Visual Analysis
 
-The **timeline visualization** highlights the rapid progression of events — PowerShell spawning compiler and Defender processes, followed immediately by outbound network activity.
-The **correlation chart** shows multiple outbound connections initiated within five seconds of file creation and process execution, linking local PowerShell actions to external hosts.
+The timeline visualization highlights the rapid progression of events — PowerShell spawning compiler and Defender processes, followed immediately by outbound network activity.
+The correlation chart shows multiple outbound connections initiated within five seconds of file creation and process execution, linking local PowerShell actions to external hosts.
 
 ---
 
@@ -277,19 +273,19 @@ The **correlation chart** shows multiple outbound connections initiated within f
 
 ---
 
-#### **Summary**
-This Advanced Hunting dataset validates a deliberate, automated PowerShell execution chain culminating in network communication consistent with **RCE** and **potential data exfiltration**.
-Evidence aligns with known threat behaviors in the **MITRE ATT&CK** framework and confirms my original hypothesis of **malicious insider activity**.
+#### Summary
+This Advanced Hunting dataset validates a deliberate, automated PowerShell execution chain culminating in network communication consistent with RCE and potential data exfiltration.
+Evidence aligns with known threat behaviors in the MITRE ATT&CK framework and confirms my original hypothesis of malicious insider activity**.
 
 ---
 
 ### 5️⃣ Investigation
 
-**Goal:** Investigate suspicious findings, identify potential TTPs, and map observed behaviors to the MITRE ATT&CK framework.
+Goal: Investigate suspicious findings, identify potential TTPs, and map observed behaviors to the MITRE ATT&CK framework.
 
-**Activity:** I dug deeper into `DeviceProcessEvents` to determine the scope of activity surrounding the suspicious script and any attacker-like execution chains.
+Activity: I dug deeper into `DeviceProcessEvents` to determine the scope of activity surrounding the suspicious script and any attacker-like execution chains.
 
-**Query Used**
+Query Used
 
 ```kusto
 DeviceProcessEvents
@@ -302,13 +298,13 @@ DeviceProcessEvents
 | order by Timestamp asc
 ```
 
-**Results Overview**
+Results Overview
 
 <p align="left">
   <img src="images/Screenshot 2025-11-07 10.png" width="600">
 </p>
 
-The results revealed a clear execution chain repeating throughout the morning of **November 7, 2025**, centered around PowerShell and command-line activity.
+The results revealed a clear execution chain repeating throughout the morning of *November 7, 2025*, centered around PowerShell and command-line activity.
 Notable findings include:
 
 * `cmd.exe` launching `powershell.exe` with flags such as `-ExecutionPolicy Bypass` and `-NoProfile`
@@ -326,7 +322,7 @@ These repeated transitions between `cmd.exe` → `powershell.exe` → `csc.exe` 
   <img src="images/Screenshot 2025-11-07 12.png" width="600">
 </p>
 
-**MITRE ATT&CK Mapping**
+MITRE ATT&CK Mapping
 
 | Tactic          | Technique                     | ID        | Evidence                                                                           |
 | --------------- | ----------------------------- | --------- | ---------------------------------------------------------------------------------- |
@@ -335,7 +331,7 @@ These repeated transitions between `cmd.exe` → `powershell.exe` → `csc.exe` 
 | Defense Evasion | Signed Binary Proxy Execution | T1218     | PowerShell using `MpCmdRun.exe` (Microsoft-signed) to run tasks or bypass controls |
 | Exfiltration    | Exfiltration Over C2 Channel  | T1041     | Outbound HTTPS connections after script execution to GitHub / Azure IP addresses   |
 
-**Interpretation**
+Interpretation
 
 This sequence strongly indicates that the attacker (or test script) used PowerShell to execute a payload that:
 
@@ -368,7 +364,7 @@ My goal was to **lock down the system**, confirm that **no further exfiltration 
 .\final-hardening.ps1
 ```
 
-**What this enforces (examples built into my script):**
+What this enforces (examples built into my script):
 
 * TLS minimum = 1.2 (disable TLS 1.0 / 1.1)
 * Disable Guest & Administrator interactive accounts
@@ -381,7 +377,7 @@ My goal was to **lock down the system**, confirm that **no further exfiltration 
   <img src="images/Screenshot 2025-11-08 13.png" width="600">
 </p>
 
-**Result:**
+Result:
 7-Zip was uninstalled, guest/admin accounts disabled, TLS 1.2 enforced, Defender re-enabled, auditing applied, and firewall turned on for all profiles.
 Minor parameter warnings were non-critical.
 
@@ -436,7 +432,7 @@ This ensured future PowerShell or CMD activity would include full command-line a
 
 *(To confirm no new script, archive, or outbound network activity)*
 
-**Check DeviceFileEvents for script or archive artifacts**
+*Check DeviceFileEvents for script or archive artifacts*
 
 ```kusto
 DeviceFileEvents
@@ -449,7 +445,7 @@ DeviceFileEvents
   <img src="images/Screenshot 2025-11-08 16.png" width="600">
 </p>
 
-**Check DeviceProcessEvents for archive and execution chains**
+*Check DeviceProcessEvents for archive and execution chains*
 
 ```kusto
 DeviceProcessEvents
@@ -463,7 +459,7 @@ DeviceProcessEvents
   <img src="images/Screenshot 2025-11-08 17.png" width="600">
 </p>
 
-**Check DeviceNetworkEvents for outbound connections to suspicious domains/IPs**
+*Check DeviceNetworkEvents for outbound connections to suspicious domains/IPs*
 
 ```kusto
 DeviceNetworkEvents
@@ -476,7 +472,7 @@ DeviceNetworkEvents
   <img src="images/Screenshot 2025-11-08 18.png" width="600">
 </p>
 
-**Expected Result:**
+Expected Result:
 All three returned no new events after the hardening time window.
 Any residual historical entries (e.g., GitHub raw content or Defender telemetry) were considered benign.
 Even if the results showed minor activity (legit system noise, background Defender checks, etc.), that was normal.
@@ -485,7 +481,7 @@ Even if the results showed minor activity (legit system noise, background Defend
 
 ### Hardening Verification Summary
 
-**1. Hardening script executed successfully**
+1. Hardening script executed successfully
 
 * 7-Zip removed (data-compression tool eliminated)
 * Guest/Administrator accounts disabled
@@ -495,7 +491,7 @@ Even if the results showed minor activity (legit system noise, background Defend
 * Firewall active on all profiles
 * Auditing applied successfully (minor non-impact errors)
 
-**2. Defender status check**
+2. Defender status check
 
 ```powershell
 Get-MpComputerStatus
@@ -506,10 +502,10 @@ Get-MpComputerStatus
 `CloudEnabled = True`
 Confirmed active endpoint protection and Defender telemetry reporting.
 
-**3. Auditing**
+3. Auditing
 `auditpol` confirmed “Process Creation” auditing enabled — critical for visibility in MDE.
 
-**4. Verification queries (post-remediation)**
+4. Verification queries (post-remediation)
 
 * `DeviceFileEvents`: no new hits for `exfiltratedata.ps1` or `employee-data.zip` → no malicious file creation
 * `DeviceProcessEvents`: no `7z.exe` or PowerShell exfil commands → no suspicious execution
@@ -517,7 +513,7 @@ Confirmed active endpoint protection and Defender telemetry reporting.
 
 ---
 
-**Conclusion**
+Conclusion
 My host **awl4114awl-mde** is now **clean, hardened, and verified** by telemetry and Defender status.
 No persistence or recurring exfiltration observed after remediation.
 
@@ -528,13 +524,13 @@ Although telemetry confirmed no further execution or network activity, I manuall
 Remove-Item "C:\ProgramData\exfiltratedata.ps1" -Force
 ```
 
-**BEFORE:**
+BEFORE:
 
 <p align="left">
   <img src="images/Screenshot 2025-11-08 19.png" width="750">
 </p>
 
-**AFTER:**
+AFTER:
 
 <p align="left">
   <img src="images/Screenshot 2025-11-08 20.png" width="750">
@@ -550,7 +546,7 @@ No new 7-Zip, PowerShell, or network exfiltration activity was observed after cl
 
 ### 7️⃣ Documentation
 
-**Goal:**
+Goal:
 Record what I did, what I found, and what it means for future hunts.
 
 ---
@@ -559,9 +555,9 @@ Record what I did, what I found, and what it means for future hunts.
 
 Here is a concise record of my full investigation workflow:
 
-1. **Created and onboarded** a Windows 11 VM to **Microsoft Defender for Endpoint (MDE)**.
-2. **Verified** the device was active, reporting telemetry, and visible in the Defender portal.
-3. **Simulated malicious behavior** by running a PowerShell one-liner that downloaded and executed `exfiltratedata.ps1`, mimicking insider data theft.
+1. Created and onboarded a Windows 11 VM to Microsoft Defender for Endpoint (MDE).
+2. Verified the device was active, reporting telemetry, and visible in the Defender portal.
+3. Simulated malicious behavior by running a PowerShell one-liner that downloaded and executed `exfiltratedata.ps1`, mimicking insider data theft.
 
 ---
 
@@ -569,9 +565,9 @@ Here is a concise record of my full investigation workflow:
 
 I collected telemetry from three core MDE tables to build a complete activity picture:
 
-* **DeviceProcessEvents** — captured PowerShell, cmd, csc.exe, and MpCmdRun.exe activity
-* **DeviceFileEvents** — logged script creation and ZIP/CSV modifications
-* **DeviceNetworkEvents** — confirmed outbound connections related to the simulated attack
+* DeviceProcessEvents — captured PowerShell, cmd, csc.exe, and MpCmdRun.exe activity
+* DeviceFileEvents — logged script creation and ZIP/CSV modifications
+* DeviceNetworkEvents — confirmed outbound connections related to the simulated attack
 
 By correlating timestamps across these datasets, I reconstructed the full execution chain used for data exfiltration.
 
@@ -592,7 +588,7 @@ I then conducted deeper analysis using Advanced Hunting queries, visualizations,
 
 #### Remediation & Hardening
 
-To remediate and secure the host, I executed **`final-hardening.ps1`**, which enforced:
+To remediate and secure the host, I executed `final-hardening.ps1`, which enforced:
 
 * Removal of 7-Zip
 * Enforcement of TLS 1.2 only
@@ -611,13 +607,13 @@ After remediation, I validated system integrity using:
 * Fresh MDE Advanced Hunting queries → no new indicators of compromise
 * Manual directory inspection (`C:\ProgramData`) → confirmed removal of `exfiltratedata.ps1`
 
-**Result:** My system was fully hardened, telemetry was clean, and no further suspicious activity was detected.
+Result: My system was fully hardened, telemetry was clean, and no further suspicious activity was detected.
 
 ---
 
 ### 8️⃣ Improvement
 
-**Goal:**
+Goal:
 Strengthen security posture and refine my investigation methods for the next hunt.
 
 ---
@@ -626,22 +622,22 @@ Strengthen security posture and refine my investigation methods for the next hun
 
 Several preventative controls could have stopped or significantly limited the original attack chain:
 
-1. **Remove or restrict archival tools (7-Zip, WinRAR, etc.)**
+1. Remove or restrict archival tools (7-Zip, WinRAR, etc.)
    The attack relied on 7-Zip to compress data. If 7-Zip had never been installed or was restricted via AppLocker/WDAC, the script would have failed.
 
-2. **Enforce strict PowerShell execution policies**
+2. Enforce strict PowerShell execution policies
    The script used `-ExecutionPolicy Bypass`. Device Guard / AppLocker / WDAC and constrained language mode could block bypass attempts and prevent unauthorized script execution.
 
-3. **Enable command-line auditing earlier**
+3. Enable command-line auditing earlier
    Command-line auditing dramatically improves visibility. If it had been enabled, detection and attribution would have been faster.
 
-4. **Restrict write access to `C:\ProgramData`**
+4. *Restrict write access to `C:\ProgramData`
    Preventing non-admin write access would block easy script staging in `ProgramData`, removing a common foothold for drop-and-execute payloads.
 
-5. **Egress filtering / outbound firewall rules**
+5. Egress filtering / outbound firewall rules
    Blocking or alerting on outbound GitHub RAW requests (a common exfiltration/staging channel) would have caught this behavior immediately.
 
-6. **Automated detection rules in MDE**
+6. Automated detection rules in MDE
    Custom KQL detection rules could alert on combinations like:
 
    * PowerShell + `Invoke-WebRequest`
@@ -654,10 +650,10 @@ Several preventative controls could have stopped or significantly limited the or
 
 Reflecting on the investigation, I identified several process and tooling improvements:
 
-1. **Build a timeline correlation query earlier**
+1. Build a timeline correlation query earlier
    Create a single query that joins `DeviceProcessEvents`, `DeviceFileEvents`, and `DeviceNetworkEvents` to rapidly produce an execution timeline. I reconstructed this manually during the hunt; automating it would save time.
 
-2. **Automate extraction of suspicious indicators**
+2. Automate extraction of suspicious indicators
    Use watchlists or custom tables to track:
 
    * Investigated IPs
@@ -665,7 +661,7 @@ Reflecting on the investigation, I identified several process and tooling improv
    * Known-bad folders
      This speeds up triage and reuse across incidents.
 
-3. **Create reusable “hunt modules”**
+3. Create reusable “hunt modules”
    Develop modular templates for common patterns, for example:
 
    * *PowerShell LOLBins Hunt Module*
@@ -673,10 +669,10 @@ Reflecting on the investigation, I identified several process and tooling improv
    * *Exfiltration-by-Cloud-Services Hunt Module*
      These save time and ensure consistent coverage.
 
-4. **Convert hunts into MDE custom detections**
+4. Convert hunts into MDE custom detections
    Turn repeatable hunt queries into continuous alerts so incidents surface automatically rather than only during manual investigation.
 
-5. **Improve visualization**
+5. Improve visualization
    Build an event timeline chart and a MITRE heatmap at the start of triage to surface patterns faster and guide analysis.
 
 ---
