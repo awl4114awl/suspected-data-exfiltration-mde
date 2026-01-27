@@ -1,6 +1,6 @@
 # Suspected Data Exfiltration (Microsoft Defender for Endpoint)
 
-## ℹ️ Overview
+## ⓘ Overview
 
 I did this lab in [The Cyber Range](http://joshmadakor.tech/cyber-range), an Azure-hosted enterprise environment where I recreate realistic detection, investigation, and incident-response workflows. In this scenario, I simulated an insider-threat data exfiltration attempt and used Microsoft Defender for Endpoint (MDE) and Kusto Query Language (KQL) to investigate the full attack path.
 
@@ -21,20 +21,18 @@ This lab will show  my ability to:
 * Apply MITRE ATT&CK classification to real telemetry
 * Validate remediation and post-incident hardening in a modern SOC workflow
 
-## 📓 Lab Workflow
-
-### 1️⃣ Provision Windows 11 VM & onboard it to MDE
+### 1. Provision Windows 11 VM & onboard it to MDE
 
 | Component         | Details                                |
 | ----------------- | -------------------------------------- |
-| **VM Name**       | awl4114awl-mde                         |
-| **OS Image**      | Windows 11 24H2                        |
-| **Region**        | East US 2                              |
-| **VM Size**       | Standard DS1 v2                        |
-| **Security Type** | Standard (trusted launch disabled)     |
-| **Network**       | Cyber-Range-Subnet (shared Azure VNet) |
-| **Public IP**     | 20.7.179.187                           |
-| **Private IP**    | 10.0.0.145                             |
+| VM Name       | awl4114awl-mde                         |
+| OS Image      | Windows 11 24H2                        |
+| Region        | East US 2                              |
+| VM Size       | Standard DS1 v2                        |
+| Security Type | Standard (trusted launch disabled)     |
+| Network       | Cyber-Range-Subnet (shared Azure VNet) |
+| Public IP     | 20.7.179.187                           |
+| Private IP    | 10.0.0.145                             |
 
 Again, the Cyber Range is a shared, cloud-based training environment that simulates enterprise networks and real-world attack scenarios.
 Each participant operates within a safe, controlled subnet where malicious activity can be executed and detected without impacting production systems.
@@ -64,7 +62,7 @@ This downloaded and executed `exfiltratedata.ps1`, which:
 
 ### Investigation Scenario: Data Exfiltration from PIPd Employee
 
-### 2️⃣ Preparation
+### 2. Preparation
 
 Scenario Setup
 A PIP’d employee, John Doe, has become a potential insider threat. Management suspects possible data exfiltration from his corporate workstation (awl4114awl-mde).
@@ -87,7 +85,7 @@ Hunting Plan
 
 ---
 
-### 3️⃣ Data Collection
+### 3. Data Collection
 
 Goal:
 Gather relevant evidence from logs, file activity, and network telemetry to validate the hypothesis of possible data compression and exfiltration by the PIP’d employee.
@@ -102,7 +100,7 @@ To investigate the suspected insider activity, I queried telemetry from three ke
 * DeviceFileEvents – to identify file creation and modification activity
 * DeviceNetworkEvents – to track outbound connections made during the suspected exfiltration window
 
-All data was collected from the virtual machine **awl4114awl-mde**, assigned to the employee *John Doe*.
+All data was collected from the virtual machine awl4114awl-mde, assigned to the employee *John Doe*.
 
 ---
 
@@ -131,9 +129,9 @@ The query revealed a clear sequence of commands executed between *10:02:15 AM �
 Interpretation:
 
 * A PowerShell script named `exfiltratedata.ps1` executed from `C:\ProgramData\`, invoking 7-Zip to compress a temporary employee data CSV into a ZIP archive.
-* The session originated from a remote connection (`192.168.1.169`) via **AWL4114AWL**, and while 7-Zip itself is legitimate software, this usage pattern—especially under a non-interactive remote session—is highly suspicious.
+* The session originated from a remote connection (`192.168.1.169`) via AWL4114AWL, and while 7-Zip itself is legitimate software, this usage pattern—especially under a non-interactive remote session—is highly suspicious.
 
-**Mapping to MITRE ATT&CK:** *T1560 – Archive Collected Data*
+Mapping to MITRE ATT&CK: *T1560 – Archive Collected Data*
 
 ---
 
@@ -148,7 +146,7 @@ DeviceFileEvents
 ```
 
 Observation:
-A new PowerShell script **exfiltratedata.ps1** was created in `C:\ProgramData\` at **10:02:26 AM** — the same timestamp associated with the 7-Zip process.
+A new PowerShell script exfiltratedata.ps1 was created in `C:\ProgramData\` at 10:02:26 AM — the same timestamp associated with the 7-Zip process.
 
 | Timestamp              | FileName           | FolderPath      | ActionType  | SHA256             |
 | ---------------------- | ------------------ | --------------- | ----------- | ------------------ |
@@ -205,24 +203,24 @@ All three evidence sources align:
 * File logs confirm creation of a suspicious PowerShell exfiltration script.
 * Network logs confirm immediate outbound HTTPS connections to GitHub and cloud IPs.
 
-This collective telemetry supports my working hypothesis that **John Doe** used PowerShell to compress and exfiltrate sensitive data from his assigned workstation.
+This collective telemetry supports my working hypothesis that John Doe used PowerShell to compress and exfiltrate sensitive data from his assigned workstation.
 
 ---
 
-### 4️⃣ Data Analysis
+### 4. Data Analysis
 
 Goal:
 Analyze collected MDE telemetry to validate the hypothesis of PowerShell-based remote code execution (RCE) and data exfiltration.
 
 Activity:
-I correlated process, file, and network events captured in Microsoft Defender for Endpoint (Advanced Hunting) from host **awl4114awl-mde** to confirm whether malicious automation occurred.
+I correlated process, file, and network events captured in Microsoft Defender for Endpoint (Advanced Hunting) from host awl4114awl-mde to confirm whether malicious automation occurred.
 
 ---
 
 #### Dataset Overview
 
-The dataset (**AdvancedHuntingResults – RCE Detection – Jordan Calvert.csv**) contained roughly **10 key events** between **09:57:05 AM – 09:57:12 AM UTC** on **Nov 7, 2025**.
-These entries covered process, file, and network activities showing a full **PowerShell → compiler → network** chain indicative of scripted code delivery and outbound callbacks.
+The dataset (AdvancedHuntingResults – RCE Detection – Jordan Calvert.csv) contained roughly 10 key events between 09:57:05 AM – 09:57:12 AM UTC on Nov 7, 2025.
+These entries covered process, file, and network activities showing a full PowerShell → compiler → network chain indicative of scripted code delivery and outbound callbacks.
 
 ---
 
@@ -259,20 +257,20 @@ The correlation chart shows multiple outbound connections initiated within five 
 
 | Technique ID  | Technique Name                | Evidence in Logs                     |
 | ------------- | ----------------------------- | ------------------------------------ |
-| **T1059.001** | PowerShell                    | Bypass ExecutionPolicy flag detected |
-| **T1127**     | Compile After Delivery        | Invocation of `csc.exe` compiler     |
-| **T1218**     | Signed Binary Proxy Execution | `MpCmdRun.exe` used as LOLBin        |
-| **T1041**     | Exfiltration Over C2 Channel  | Outbound TCP to Azure IPs            |
+| T1059.001 | PowerShell                    | Bypass ExecutionPolicy flag detected |
+| T1127     | Compile After Delivery        | Invocation of `csc.exe` compiler     |
+| T1218     | Signed Binary Proxy Execution | `MpCmdRun.exe` used as LOLBin        |
+| T1041     | Exfiltration Over C2 Channel  | Outbound TCP to Azure IPs            |
 
 ---
 
 #### Summary
 This Advanced Hunting dataset validates a deliberate, automated PowerShell execution chain culminating in network communication consistent with RCE and potential data exfiltration.
-Evidence aligns with known threat behaviors in the MITRE ATT&CK framework and confirms my original hypothesis of malicious insider activity**.
+Evidence aligns with known threat behaviors in the MITRE ATT&CK framework and confirms my original hypothesis of malicious insider activity.
 
 ---
 
-### 5️⃣ Investigation
+### 5. Investigation
 
 Goal: Investigate suspicious findings, identify potential TTPs, and map observed behaviors to the MITRE ATT&CK framework.
 
@@ -302,7 +300,7 @@ Notable findings include:
 
 * `cmd.exe` launching `powershell.exe` with flags such as `-ExecutionPolicy Bypass` and `-NoProfile`
 * `powershell.exe` spawning `csc.exe` (the C# compiler) and `MpCmdRun.exe`
-* `MpCmdRun.exe` being invoked with `GetDefinitions` and `SignatureUpdate` parameters under the **Network Service** account
+* `MpCmdRun.exe` being invoked with `GetDefinitions` and `SignatureUpdate` parameters under the Network Service account
 * Multiple PowerShell executions originating from `cmd.exe` sessions — suggesting scripted automation rather than user-initiated tasks
 
 <p align="left">
@@ -333,19 +331,19 @@ This sequence strongly indicates that the attacker (or test script) used PowerSh
 * Possibly compressed and exfiltrated data to remote servers shortly after archive creation
 
 The activity aligns with multiple MITRE ATT&CK techniques and demonstrates a typical post-exploitation chain used in data exfiltration scenarios.
-The telemetry strongly supports that `exfiltratedata.ps1` was dropped and executed on **awl4114awl-mde**, which compressed local employee data with 7-Zip and immediately made outbound HTTPS connections (to `raw.githubusercontent.com` and Azure IPs).
+The telemetry strongly supports that `exfiltratedata.ps1` was dropped and executed on awl4114awl-mde, which compressed local employee data with 7-Zip and immediately made outbound HTTPS connections (to `raw.githubusercontent.com` and Azure IPs).
 Process/file/network correlation (`cmd` → `powershell` → `7z`; created `employee-data-*.zip`; outbound connections from `powershell.exe`) maps cleanly to MITRE techniques for archive collected data (T1560), PowerShell execution (T1059.001), compile/compile-after-delivery behavior (T1127) and signed-binary proxy use (`MpCmdRun`, T1218) — consistent with scripted exfiltration rather than benign admin activity.
 
-**Confidence:** I assess high confidence that an exfiltration event occurred on that host; my next immediate actions were to isolate the VM, capture the `exfiltratedata.ps1` and the ZIP (and their hashes), preserve process/network logs, block the remote domains/IPs, and rotate any credentials associated with the remote session.
+Confidence: I assess high confidence that an exfiltration event occurred on that host; my next immediate actions were to isolate the VM, capture the `exfiltratedata.ps1` and the ZIP (and their hashes), preserve process/network logs, block the remote domains/IPs, and rotate any credentials associated with the remote session.
 
 ---
 
-### 6️⃣ Final Hardening Steps I Ran
+### 6. Final Hardening Steps I Ran
 
 #### Purpose
 
 This step demonstrates the remediation and verification actions I took to fully secure the host after confirmed data exfiltration activity.
-My goal was to **lock down the system**, confirm that **no further exfiltration was occurring**, and create a **reproducible audit trail** showing complete remediation.
+My goal was to lock down the system, confirm that no further exfiltration was occurring, and create a reproducible audit trail showing complete remediation.
 
 ---
 
@@ -507,7 +505,7 @@ Confirmed active endpoint protection and Defender telemetry reporting.
 ---
 
 Conclusion
-My host **awl4114awl-mde** is now **clean, hardened, and verified** by telemetry and Defender status.
+My host awl4114awl-mde is now clean, hardened, and verified by telemetry and Defender status.
 No persistence or recurring exfiltration observed after remediation.
 
 During post-remediation validation, I discovered the original `exfiltratedata.ps1` file still present in `C:\ProgramData\`.
@@ -533,11 +531,11 @@ AFTER:
 
 ### Final Verification
 
-No new 7-Zip, PowerShell, or network exfiltration activity was observed after cleanup, confirming that the system is fully **remediated and hardened against recurrence**.
+No new 7-Zip, PowerShell, or network exfiltration activity was observed after cleanup, confirming that the system is fully remediated and hardened against recurrence.
 
 ---
 
-### 7️⃣ Documentation
+### 7. Documentation
 
 Goal:
 Record what I did, what I found, and what it means for future hunts.
@@ -604,7 +602,7 @@ Result: My system was fully hardened, telemetry was clean, and no further suspic
 
 ---
 
-### 8️⃣ Improvement
+### 8. Improvement
 
 Goal:
 Strengthen security posture and refine my investigation methods for the next hunt.
